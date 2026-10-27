@@ -6,12 +6,12 @@ module minimization
 
 contains
 
-    subroutine algorithm3_step(A, P, N, f, diag_D, omega, P_next)
+    subroutine algorithm3_step(A, P, N, f, diag_D, omega, P_next, projected_gradient)
         real(real64), intent(in) :: A(:,:), P(:,:), diag_D(:), omega
         integer, intent(in) :: f(:)
         logical, intent(in) :: N(:,:)
 
-        real(real64), intent(out) :: P_next(:,:)
+        real(real64), intent(out) :: P_next(:,:), projected_gradient
 
         real(real64) :: G(size(A,1),size(P,2)), V(size(A,1),size(P,2)), H(size(A,1),size(P,2))
 
@@ -19,29 +19,50 @@ contains
         where (.not. N) G = 0.0_real64  ! G = N \odot AP
         call apply_Dinv(diag_D, G, V)   ! V = D^-1 G
         call project_direction(V, N, f, H)  ! H = Z(V)
+        projected_gradient = sqrt(sum(H**2))    ! ||H||_F of the current P
         P_next = P - omega * H
 
     end subroutine algorithm3_step
 
-    subroutine algorithm3_iterate(A, P0, N, f, diag_D, omega, n_steps, P_final)
-        real(real64), intent(in) :: A(:,:), P0(:,:), diag_D(:), omega
-        integer, intent(in) :: f(:), n_steps
+    subroutine algorithm3_iterate(A, P0, N, f, diag_D, omega, tol, max_steps, P_final, converged)
+        real(real64), intent(in) :: A(:,:), P0(:,:), diag_D(:), omega, tol
+        integer, intent(in) :: f(:), max_steps
         logical, intent(in) :: N(:,:)
 
         real(real64), intent(out) :: P_final(:,:)
+        logical, intent(out) :: converged
 
-        real(real64), allocatable :: P_current(:,:)
-        real(real64) :: energy
+        real(real64), allocatable :: P_current(:,:), P_next(:,:)
+        real(real64) :: energy, current_projected_gradient
         integer :: iter
 
         P_current = P0
+        P_next = P0
+        converged = .false.
 
-        do iter = 1, n_steps
-            call algorithm3_step(A, P_current, N, f, diag_D, omega, P_final)
-            P_current = P_final
-            energy = compute_energy(A, P_current)
-            print *, "step = ", iter, "energy =", energy
+        do iter = 0, max_steps
+            ! energy = compute_energy(A, P_current)
+            call algorithm3_step(A, P_current, N, f, diag_D, omega, P_next, current_projected_gradient)
+            ! print *, current_projected_gradient
+
+            if (current_projected_gradient <= tol) then
+                converged = .true.
+                exit
+            end if
+
+            if (iter == max_steps) exit
+
+            P_current = P_next
         end do
+
+        P_final = P_current
+        energy = compute_energy(A, P_final)
+
+        if (converged) then
+            print *, "converged at iter", iter, "with energy", energy, "and projected gradient", current_projected_gradient
+        else
+            print *, "max_steps reached without convergence; energy", energy, "projected gradient", current_projected_gradient
+        end if
 
     end subroutine algorithm3_iterate
 

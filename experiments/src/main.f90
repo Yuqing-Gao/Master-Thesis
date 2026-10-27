@@ -7,16 +7,19 @@ program main
     implicit none
     
     integer :: n, n_agg  ! n: the size of A; n_agg: the number of aggregations
-    integer :: i, n_steps
-    real(real64) :: energy, omega
+    integer :: i, max_steps
+    real(real64) :: omega, tol
+    logical :: converged
+
     integer, allocatable :: agg(:), f(:)
     logical, allocatable :: N0(:,:), N1(:,:)
     real(real64), allocatable :: A(:,:), P_hat(:,:), H(:,:), diag_D(:), V(:,:), P_new(:,:)
 
     n = 4
     n_agg = 2
-    n_steps = 10
+    max_steps = 2
     omega = 0.5
+    tol = 1e-6
 
     allocate(A(n,n), agg(n), P_hat(n,n_agg), H(n,n_agg), V(n,n_agg), P_new(n,n_agg))
     allocate(N0(n,n_agg), N1(n,n_agg))
@@ -47,10 +50,6 @@ program main
         P_hat(i, agg(i)) = 1
     end do
 
-    ! compute the energy of P by J(P) = \sum\sum Pij(AP)ij
-    energy = compute_energy(A, P_hat)
-    print *, "Energy =", energy
-
     ! construct diag_D
     do i = 1, n
         diag_D(i) = A(i,i)
@@ -58,7 +57,7 @@ program main
 
     call build_patterns(A, agg, N0, N1)
 
-    call algorithm3_iterate(A, P_hat, N1, f, diag_D, omega, n_steps, P_new)
+    call algorithm3_iterate(A, P_hat, N1, f, diag_D, omega, tol, max_steps, P_new, converged)
 
 
 end program main

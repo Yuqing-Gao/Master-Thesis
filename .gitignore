@@ -1,0 +1,8 @@
+*.o
+*.mod
+*.smod
+*.dSYM/
+/amg_test
+build*/
+.vscode/
+.DS_Store

@@ -7,14 +7,9 @@ contains
     subroutine build_patterns(A, agg, N0, N1)
         real(real64), intent(in) :: A(:,:)
         integer, intent(in) :: agg(:)
-        logical, intent(out) :: N0(:,:), N1(:,:)
+        logical, intent(in) :: N0(:,:)
+        logical, allocatable, intent(out) :: N1(:,:)
         integer :: i, k
-
-        N0 = .false.
-        do i = 1, size(agg)
-            ! allow the ith row to connect to their aggregate
-            N0(i,agg(i)) = .true.
-        end do
 
         N1 = N0
         

@@ -4,60 +4,30 @@ program main
     use patterns, only: build_patterns
     use constraints, only: project_direction
     use minimization, only: algorithm3_step, algorithm3_iterate
+    use scalar_1d, only: setup_scalar_1d_case, build_diffusion_1d
     implicit none
     
-    integer :: n, n_agg  ! n: the size of A; n_agg: the number of aggregations
-    integer :: i, max_steps
-    real(real64) :: omega, tol
-    logical :: converged
 
     integer, allocatable :: agg(:), f(:)
+    real(real64), allocatable :: A(:,:), P0(:,:), P_new(:,:), diag_D(:)
     logical, allocatable :: N0(:,:), N1(:,:)
-    real(real64), allocatable :: A(:,:), P_hat(:,:), H(:,:), diag_D(:), V(:,:), P_new(:,:)
+    real(real64) :: omega, tol
+    integer :: i, max_steps
+    logical :: converged
 
-    n = 4
-    n_agg = 2
-    max_steps = 2
-    omega = 0.5
-    tol = 1e-6
+    call setup_scalar_1d_case(A, agg, f, P0, N0)
 
-    allocate(A(n,n), agg(n), P_hat(n,n_agg), H(n,n_agg), V(n,n_agg), P_new(n,n_agg))
-    allocate(N0(n,n_agg), N1(n,n_agg))
-    allocate(f(n), diag_D(n))
-
-    A = 0.0_real64
-    H = 0.0_real64
-    V = 0.0_real64
-    P_hat = 0.0_real64
-    agg = [1, 1, 2, 2]
-    f = [1, 1, 1, 1]
-    diag_D = 0.0_real64
-
-    ! constrct matrix A
-    do i = 1, n
-        A(i, i) = 2.0_real64
-        if (i /= 1) then
-            A(i, i-1) = -1.0_real64
-        end if
-        if (i /= n) then
-            A(i, i+1) = -1.0_real64
-        end if
-    end do
-
-
-    ! construct the nonsmoothed interpolation P_hat
-    do i = 1, n
-        P_hat(i, agg(i)) = 1
-    end do
-
-    ! construct diag_D
-    do i = 1, n
-        diag_D(i) = A(i,i)
-    end do
+    print *, compute_energy(A, P0)
 
     call build_patterns(A, agg, N0, N1)
 
-    call algorithm3_iterate(A, P_hat, N1, f, diag_D, omega, tol, max_steps, P_new, converged)
+    allocate(diag_D(size(A,1)))
+    do i = 1, size(A,1); diag_D(i) = A(i,i); enddo
 
+    omega = 0.5_real64
+    tol = 1e-8
+    max_steps = 1e3
+
+    call algorithm3_iterate(A, P0, N1, f, diag_D, omega, tol, max_steps, P_new, converged)
 
 end program main

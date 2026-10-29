@@ -29,7 +29,7 @@ contains
         integer, intent(in) :: f(:), max_steps
         logical, intent(in) :: N(:,:)
 
-        real(real64), intent(out) :: P_final(:,:)
+        real(real64), allocatable, intent(out) :: P_final(:,:)
         logical, intent(out) :: converged
 
         real(real64), allocatable :: P_current(:,:), P_next(:,:)
@@ -49,7 +49,6 @@ contains
                 converged = .true.
                 exit
             end if
-
             if (iter == max_steps) exit
 
             P_current = P_next

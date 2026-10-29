@@ -8,7 +8,7 @@ contains
         real(real64), intent(in) :: A(:,:), P(:,:)
         real(real64) :: value
         
-        value = sum(P * matmul(A, P))
+        value = 0.5_real64 * sum(P * matmul(A, P))
     end function compute_energy
 
     subroutine apply_Dinv(diag_D, G, V)

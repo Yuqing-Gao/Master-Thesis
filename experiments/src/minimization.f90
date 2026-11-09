@@ -24,16 +24,17 @@ contains
 
     end subroutine algorithm3_step
 
-    subroutine algorithm3_iterate(A, P0, N, f, diag_D, omega, tol, max_steps, P_final, converged)
+    subroutine algorithm3_iterate(A, P0, N, f, diag_D, omega, tol, max_steps, P_final, converged, energy)
         real(real64), intent(in) :: A(:,:), P0(:,:), diag_D(:), omega, tol
         integer, intent(in) :: f(:), max_steps
         logical, intent(in) :: N(:,:)
 
         real(real64), allocatable, intent(out) :: P_final(:,:)
         logical, intent(out) :: converged
+        real(real64), intent(out) :: energy
 
         real(real64), allocatable :: P_current(:,:), P_next(:,:)
-        real(real64) :: energy, current_projected_gradient
+        real(real64) :: current_projected_gradient
         integer :: iter
 
         P_current = P0
@@ -57,11 +58,11 @@ contains
         P_final = P_current
         energy = compute_energy(A, P_final)
 
-        if (converged) then
-            print *, "converged at iter", iter, "with energy", energy, "and projected gradient", current_projected_gradient
-        else
-            print *, "max_steps reached without convergence; energy", energy, "projected gradient", current_projected_gradient
-        end if
+        ! if (converged) then
+        !     print *, "converged at iter", iter, "with energy", energy, "and projected gradient", current_projected_gradient
+        ! else
+        !     print *, "max_steps reached without convergence; energy", energy, "projected gradient", current_projected_gradient
+        ! end if
 
     end subroutine algorithm3_iterate
 

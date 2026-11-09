@@ -24,5 +24,22 @@ contains
 
     end subroutine build_patterns
 
+    subroutine build_ranked_pattern(rows, cols, order, budget, N_trial)
+        integer, intent(in) :: rows(:), cols(:), order(:), budget
+
+        logical, intent(out) :: N_trial(:,:)
+
+        integer :: i
+        
+        if (budget > 0) then
+            N_trial(rows(order(budget)), cols(order(budget))) = .true.
+            ! if (budget == 4) then
+            !     do i = 1, budget
+            !         print *, rows(order(i)), cols(order(i))
+            !     end do
+            ! end if
+        end if
+
+    end subroutine build_ranked_pattern
 
 end module patterns

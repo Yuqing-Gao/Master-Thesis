@@ -13,6 +13,7 @@ contains
 
         N1 = N0
         
+        ! Now I have only considered ending in full one neighbor pattern, i.e. after 1 time smoothing
         do i = 1, size(agg)
             do k = 1, size(agg)
                 ! allow the ith row to connect to their neighbors' aggregates

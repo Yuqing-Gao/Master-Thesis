@@ -50,6 +50,7 @@ contains
             if (converged) then
                 ref%best_J(budget) = min(ref%best_J(budget), energy)
             else
+                print *, "Exhaustive solve failed at budget =", popcnt(mask), "mask =", mask
                 ref%failed_count = ref%failed_count + 1
             end if
         end do

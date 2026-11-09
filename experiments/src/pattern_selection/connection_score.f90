@@ -4,15 +4,16 @@ module connection_score
 
 contains
 
-    subroutine compute_connection_score(A, P0, C, rows, cols, score)
+    subroutine compute_connection_score(A, P0, C, agg, rows, cols, score)
         real(real64), intent(in) :: A(:,:), P0(:,:)
         logical, intent(in) :: C(:,:)
+        integer, intent(in) :: agg(:)
         
         integer, intent(out) :: rows(:), cols(:)
         real(real64), intent(out) :: score(:)
 
         real(real64), allocatable :: G0(:,:)
-        integer :: i, j, k
+        integer :: i, j, k, coarse_col
 
         G0 = matmul (A, P0)
 
@@ -24,7 +25,8 @@ contains
             do j = 1, size(G0,2)
                 if (C(i,j)) then
                     k = k + 1
-                    score(k) = abs(G0(i,j)) / A(i,i)
+                    coarse_col = agg(i)
+                    score(k) = (G0(i,coarse_col) - G0(i,j)) / (2.0_real64 * A(i,i))
                     rows(k) = i
                     cols(k) = j
                     print *, "position:", rows(k), cols(k), "score = ", score(k)

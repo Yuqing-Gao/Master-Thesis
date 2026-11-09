@@ -5,6 +5,7 @@ program main
     use minimization, only: algorithm3_iterate
     use connection_score, only: compute_connection_score
     use energy_score, only: compute_energy_score
+    use coupling_strength, only: compute_coupling_strength
     use candidate_ranking, only: rank_candidate
     use scalar_1d, only: setup_scalar_1d_case
     use pattern_experiments, only: exhaustive_result, compute_exhaustive_reference
@@ -39,7 +40,8 @@ program main
     m = count(C)
     allocate(rows(m), cols(m), score(m), order(m))
     ! call compute_connection_score(A, P0, C, agg, rows, cols, score)  ! compute the connection score for each candidates and record their positions
-    call compute_energy_score(A, P0, C, agg, rows, cols, score)
+    ! call compute_energy_score(A, P0, C, agg, rows, cols, score)
+    call compute_coupling_strength(A, C, agg, rows, cols, score)
     call rank_candidate(rows, cols, score, order)   ! rank the scores of all candidates and give them an order
 
     omega = 0.5_real64
@@ -71,6 +73,20 @@ program main
         print "(I6,3(1X,F16.12))", budget, ranked_J(budget), ref%best_J(budget), &
             ranked_J(budget) - ref%best_J(budget)
     end do
+
+    ! coupling strength
+    ! budget   ranked_J         best_J            gap
+    !  0   6.950000000000   6.950000000000   0.000000000000
+    !  1   5.616666666667   4.700000000000   0.916666666667
+    !  2   5.235714285714   3.100000000000   2.135714285714
+    !  3   4.522492836676   2.305395683453   2.217097153223
+    !  4   2.272492836676   1.866620853949   0.405871982727
+    !  5   1.951064265248   1.616620853949   0.334443411299
+    !  6   1.804706513958   1.376866398733   0.427840115225
+    !  7   1.538709000441   1.242075163399   0.296633837043
+    !  8   1.326834976137   1.135304908869   0.191530067268
+    !  9   1.076834976137   1.076834976137   0.000000000000
+    ! 10   1.024609515445   1.024609515445   0.000000000000
     
     ! connection score 
     ! budget   ranked_J         best_J            gap

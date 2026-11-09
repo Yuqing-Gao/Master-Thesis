@@ -30,7 +30,7 @@ contains
 
         logical, intent(out) :: N_trial(:,:)
 
-        integer :: i
+        ! integer :: i
         
         if (budget > 0) then
             N_trial(rows(order(budget)), cols(order(budget))) = .true.

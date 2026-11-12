@@ -2,6 +2,21 @@
 
 ## Contents
 
+- [1 Basic concepts, backgrounds](#1-basic-concepts-backgrounds)
+  - [1.1 Background and motivation](#11-background-and-motivation)
+  - [1.2 The main problem: fixed pattern energy minimization - the scalar cases](#12-the-main-problem-fixed-pattern-energy-minimization---the-scalar-cases)
+    - [1.2.1 The allowed update directions](#121-the-allowed-update-directions)
+    - [1.2.2 The main algorithm](#122-the-main-algorithm)
+    - [1.2.3 1D scalar case example](#123-1d-scalar-case-example)
+    - [1.2.4 2D scalar case example](#124-2d-scalar-case-example)
+  - [1.3 The block cases](#13-the-block-cases)
+- [2 The Problem I Need to Solve](#2-the-problem-i-need-to-solve)
+  - [2.1 How to decide $\{N^{(k)}\}$](#21-how-to-decide-nk)
+    - [2.1.1 Coupling strength](#211-coupling-strength)
+    - [2.1.2 Connection score](#212-connection-score)
+    - [2.1.3 Energy score](#213-energy-score)
+  - [2.2 How to decide $N^{(k)} \mapsto P^{(k)}$](#22-how-to-decide-nk-mapsto-pk)
+
 ## 1 Basic concepts, backgrounds
 
 ### 1.1 Background and motivation

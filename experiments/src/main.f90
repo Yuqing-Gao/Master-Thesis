@@ -1,6 +1,5 @@
 program main
     use iso_fortran_env, only: real64
-    use matrix_ops, only: compute_energy
     use patterns, only: build_patterns, build_ranked_pattern
     use minimization, only: algorithm3_iterate
     use connection_score, only: compute_connection_score
@@ -8,6 +7,7 @@ program main
     use coupling_strength, only: compute_coupling_strength
     use candidate_ranking, only: rank_candidate
     use scalar_1d, only: setup_scalar_1d_case
+    use scalar_2d, only: setup_scalar_2d_case
     use pattern_experiments, only: exhaustive_result, compute_exhaustive_reference
     implicit none
     
@@ -26,10 +26,13 @@ program main
     real(real64), allocatable :: ranked_J(:)
     integer, allocatable :: rows(:), cols(:), order(:)
     logical, allocatable :: C(:,:), N_trial(:,:)
-    
-    call setup_scalar_1d_case(A, agg, f, P0, N0)
 
-    print *, "Energy of unsmoothed interpolation P0 = ", compute_energy(A, P0)
+    integer :: result_unit, score_unit, rank, k
+    integer, parameter :: exhaustive_limit = 12
+    character(len=*), parameter :: run_name = 'rail371_coupling'
+    
+    ! call setup_scalar_1d_case(A, agg, f, P0, N0)
+    call setup_scalar_2d_case(A, agg, f, P0, N0)
 
     call build_patterns(A, agg, N0, N1) ! build unsmoothed pattern N0 and smoothed pattern N1
 
@@ -44,6 +47,18 @@ program main
     call compute_coupling_strength(A, C, agg, rows, cols, score)
     call rank_candidate(rows, cols, score, order)   ! rank the scores of all candidates and give them an order
 
+    ! write out the candidates and their scores
+    open(newunit=score_unit, file='experiments/result/' // run_name // '_scores.txt', status='replace', action='write')
+    write(score_unit, '(A)') 'rank candidate_id row col score'
+
+    do rank = 1, m
+        k = order(rank)
+        write(score_unit, '(I0,3(1X,I0),1X,ES24.16E3)') rank, k, rows(k), cols(k), score(k)
+    end do
+
+    close(score_unit)
+
+    ! compute ranked energy under different budgets
     omega = 0.5_real64
     tol = 1.0e-8_real64
     max_steps = 1000
@@ -62,58 +77,28 @@ program main
         ranked_J(budget) = energy
     end do
 
-    print *, "--------------Exhaustive reference--------------"
-    call compute_exhaustive_reference(A, P0, N0, f, rows , cols, ref,&
-                                    omega=omega, tol=tol, max_steps=max_steps, diag_D=diag_D)
-    print *, "failed solves =", ref%failed_count
+    if (m <= exhaustive_limit) then
+        print *, "--------------Exhaustive reference--------------"
+        call compute_exhaustive_reference(A, P0, N0, f, rows , cols, ref,&
+                                        omega=omega, tol=tol, max_steps=max_steps, diag_D=diag_D)
+        print *, "failed solves =", ref%failed_count
 
-    print "(A)", "budget   ranked_J         best_J            gap"
+        print "(A)", "budget   ranked_J         best_J            gap"
 
-    do budget = 0, m
-        print "(I6,3(1X,F16.12))", budget, ranked_J(budget), ref%best_J(budget), &
-            ranked_J(budget) - ref%best_J(budget)
-    end do
+        do budget = 0, m
+            print "(I6,3(1X,F16.12))", budget, ranked_J(budget), ref%best_J(budget), &
+                ranked_J(budget) - ref%best_J(budget)
+        end do
+    else
+        open(newunit=result_unit, file='experiments/result/' // run_name // '_energy.txt', status='replace', action='write')
 
-    ! coupling strength
-    ! budget   ranked_J         best_J            gap
-    !  0   6.950000000000   6.950000000000   0.000000000000
-    !  1   5.616666666667   4.700000000000   0.916666666667
-    !  2   5.235714285714   3.100000000000   2.135714285714
-    !  3   4.522492836676   2.305395683453   2.217097153223
-    !  4   2.272492836676   1.866620853949   0.405871982727
-    !  5   1.951064265248   1.616620853949   0.334443411299
-    !  6   1.804706513958   1.376866398733   0.427840115225
-    !  7   1.538709000441   1.242075163399   0.296633837043
-    !  8   1.326834976137   1.135304908869   0.191530067268
-    !  9   1.076834976137   1.076834976137   0.000000000000
-    ! 10   1.024609515445   1.024609515445   0.000000000000
-    
-    ! connection score 
-    ! budget   ranked_J         best_J            gap
-    !  0   6.950000000000   6.950000000000   0.000000000000
-    !  1   5.350000000000   4.700000000000   0.650000000000
-    !  2   3.100000000000   3.100000000000   0.000000000000
-    !  3   2.778571428571   2.305395683453   0.473175745118
-    !  4   2.664285714286   1.866620853949   0.797664860337
-    !  5   1.951064265248   1.616620853949   0.334443411299
-    !  6   1.804706513958   1.376866398733   0.427840115225
-    !  7   1.538709000441   1.242075163399   0.296633837043
-    !  8   1.326834976137   1.135304908869   0.191530067268
-    !  9   1.076834976137   1.076834976137   0.000000000000
-    ! 10   1.024609515445   1.024609515445   0.000000000000
+        write(result_unit, '(A,I0)') '# exhaustive skipped, candidates = ', m
+        write(result_unit, '(A)') 'budget ranked_J'
 
-    ! energy score
-    ! budget   ranked_J         best_J            gap
-    !  0   6.950000000000   6.950000000000   0.000000000000
-    !  1   4.700000000000   4.700000000000   0.000000000000
-    !  2   4.378571428571   3.100000000000   1.278571428571 ! only when budget = 1 & 2, the 2 scores lead to different gap
-    !  3   2.778571428571   2.305395683453   0.473175745118
-    !  4   2.664285714286   1.866620853949   0.797664860337
-    !  5   1.951064265248   1.616620853949   0.334443411299
-    !  6   1.804706513958   1.376866398733   0.427840115225
-    !  7   1.538709000441   1.242075163399   0.296633837043
-    !  8   1.326834976137   1.135304908869   0.191530067268
-    !  9   1.076834976137   1.076834976137   0.000000000000
-    ! 10   1.024609515445   1.024609515445   0.000000000000
+        do budget = 0, m
+            write(result_unit, '(I6,1X,ES24.16E3)') budget, ranked_J(budget)
+        end do
+        close(result_unit)
+    end if
 
 end program main

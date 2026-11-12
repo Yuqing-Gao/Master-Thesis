@@ -29,7 +29,7 @@ contains
                     score(k) = (G0(i,coarse_col) - G0(i,j)) / (2.0_real64 * A(i,i))
                     rows(k) = i
                     cols(k) = j
-                    print *, "position:", rows(k), cols(k), "score = ", score(k)
+                    ! print *, "position:", rows(k), cols(k), "score = ", score(k)
                 endif
             enddo
         enddo

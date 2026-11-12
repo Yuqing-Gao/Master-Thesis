@@ -48,7 +48,7 @@ contains
                 if (row_max > 0.0_real64) then
                     score(k) = agg_max / row_max
                 end if
-                print *, "position:", rows(k), cols(k), "score = ", score(k)
+                ! print *, "position:", rows(k), cols(k), "score = ", score(k)
             end do
         end do
                 

@@ -28,7 +28,7 @@ contains
     subroutine build_ranked_pattern(rows, cols, order, budget, N_trial)
         integer, intent(in) :: rows(:), cols(:), order(:), budget
 
-        logical, intent(out) :: N_trial(:,:)
+        logical, intent(inout) :: N_trial(:,:)
 
         ! integer :: i
         
